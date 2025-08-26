@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembayaran Uang Kas</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #eef2f7;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #4e73df;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      margin: 0 0 15px;
+    }
+    .form-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, button, select {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    button {
+      background: #4e73df;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2e59d9;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      border-radius: 12px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+    }
+    th {
+      background: #4e73df;
+      color: #fff;
+    }
+    tr:hover {
+      background: #f1f1f1;
+    }
+    .paid {
+      color: green;
+      font-weight: bold;
+    }
+    .unpaid {
+      color: red;
+      font-weight: bold;
+    }
+    .total-box {
+      background: #f8f9fc;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 20px;
+      }
+      .total-box {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 14px;
+        text-align: center;
+      }
+      th, td {
+        font-size: 12px;
+        padding: 8px;
+      }
+      input, button, select {
+        font-size: 12px;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Web Pembayaran Uang Kas</h1>
+  </header>
+  <div class="container">
+    <div class="total-box">
+      <span>Total Kas Terkumpul:</span>
+      <span id="totalKas">Rp 0</span>
+    </div>
+
+    <div class="form-section">
+      <input type="text" id="namaInput" placeholder="Nama Siswa">
+      <input type="number" id="jumlahInput" placeholder="Jumlah (Rp)" value="5000">
+      <button onclick="tambahSiswa()">Tambah Siswa</button>
+    </div>
+
+    <h2>Daftar Pembayaran</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>Jumlah</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="dataKas"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const siswa = [
+      { id: 1, nama: "devara", jumlah: 5000, status: false },
+      { id: 2, nama: "malik", jumlah: 5000, status: false },
+      { id: 3, nama: "riki", jumlah: 5000, status: false },
+      { id: 4, nama: "calvin", jumlah: 5000, status: false }
+    ];
+
+    function formatRupiah(angka) {
+      return "Rp " + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("dataKas");
+      tbody.innerHTML = "";
+      let total = 0;
+
+      siswa.forEach((s, index) => {
+        if (s.status) total += s.jumlah;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${s.nama}</td>
+          <td>${formatRupiah(s.jumlah)}</td>
+          <td class="${s.status ? 'paid' : 'unpaid'}">
+            ${s.status ? 'Lunas' : 'Belum Bayar'}
+          </td>
+          <td>
+            <button onclick="bayar(${s.id})" ${s.status ? 'disabled' : ''}>Bayar</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById("totalKas").innerText = formatRupiah(total);
+    }
+
+    function bayar(id) {
+      const siswaIndex = siswa.findIndex(s => s.id === id);
+      if (siswaIndex !== -1) {
+        siswa[siswaIndex].status = true;
+        renderTable();
+      }
+    }
+
+    function tambahSiswa() {
+      const nama = document.getElementById("namaInput").value.trim();
+      const jumlah = parseInt(document.getElementById("jumlahInput").value);
+      if (nama && jumlah > 0) {
+        siswa.push({ id: siswa.length + 1, nama, jumlah, status: false });
+        document.getElementById("namaInput").value = "";
+        document.getElementById("jumlahInput").value = 5000;
+        renderTable();
+      } else {
+        alert("Harap isi nama dan jumlah dengan benar!");
+      }
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
